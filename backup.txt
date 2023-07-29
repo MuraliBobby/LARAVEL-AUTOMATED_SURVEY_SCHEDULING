@@ -1,54 +1,73 @@
-<?php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use GuzzleHttp\Client;
-use App\Models\User;
-use App\Models\availability;
-use App\Models\preference;
-
-class generate_survey_form extends Controller
-{
-    public function showDashboard()
+    public function handle()
     {
-        
-        // Assuming preferences are associated with a user, retrieve the user's preferences
-        $userPreferences = preference::where('user_id', auth()->user()->id)->get();
+        //
+        $emailAddress = 'muku@gmail.com'; // Replace this with the email address you want to query
+        $user_id = 23;
+        // Retrieve all records for the specified email address
+        $records = time_frequnecy::where('email', $emailAddress)
+                        ->get(['frequent_login_time', 'frequent_logout_time']);
 
-        // Generate the survey form using GPT-3 API
-        $generatedSurvey = $this->generate($userPreferences);
-
-        // Pass the generated survey to the dashboard view
-        return view('dashboard', compact('userPreferences', 'generatedSurvey'));
-    }
-
-    public function generate($userPreferences)
-    {
-        // Prepare the user's preferences as input for GPT-3
-        $formPrompt = "Please fill out this survey form:\n\n";
-        foreach ($userPreferences as $preference) {
-            $formPrompt .= $preference->question . "\n";
+        // $preference = availability::where('user_id',$user_id)->get(['from_time','to_time']); 
+        // $preferenceArray = $preference->pluck('from_time', 'to_time')->toArray(); 
+        $preferenceArray[] = array('12:30:00', '13:40:00');
+        // Convert the records to a 2D array of DateTime objects
+        $dateTimeArray = [];
+        foreach ($records as $record) {
+            $loginTime = new Carbon($record->frequent_login_time);
+            $logoutTime = new Carbon($record->frequent_logout_time);
+            $dateTimeArray[] = [$loginTime, $logoutTime];
         }
 
-        // Make the API call to GPT-3 using Guzzle HTTP client
-        $gpt3ApiKey = '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';
-        $client = new Client();
-        $response = $client->post('https://api.openai.com/v1/engines/text-ada-001/completions', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $gpt3ApiKey,
-            ],
-            'json' => [
-                'prompt' => $formPrompt,
-                'max_tokens' => 100, // Adjust the token limit based on your requirements
-            ],
-        ]);
+        // Display the output in the console
+        $this->info('User Times:');
+        $this->table(['Frequent Login Time', 'Frequent Logout Time'], $dateTimeArray);
 
-        // Decode the JSON response and extract the generated survey form
-        $data = json_decode($response->getBody(), true);
-        $generatedSurvey = $data['choices'][0]['text'];
-
-        return $generatedSurvey;
+        $optimalTime = $this->calculateOptimalTime( $dateTimeArray, $preferenceArray);
+        $this->info("Optimal Time in seconds: " . $optimalTime); 
+        $this->info("Optimal Time in date format: ". date('Y-m-d H:i:s',$optimalTime));
     }
 
-}
+    function calculateOptimalTime(array $frequentSessionTime, array $preferredSessionTime) {
+        if (count($frequentSessionTime) === 1) {
+            return $preferredSessionTime[0]->format('H:i:s');
+        }
+        $preferredRange = [];
+    
+        $preferredLoginTime = \DateTime::createFromFormat('H:i:s', '12:30:00');
+        $preferredLogoutTime = \DateTime::createFromFormat('H:i:s', '13:40:00');
+    
+        foreach ($frequentSessionTime as $sessionTime) {
+            $currentSessionLoginTime = $sessionTime[0];
+            $currentSessionLogoutTime = $sessionTime[1];
+    
+            if ($preferredLoginTime->format('H:i:s') < $currentSessionLoginTime->format('H:i:s')
+                    && $preferredLogoutTime->format('H:i:s') > $currentSessionLogoutTime->format('H:i:s')) {
+                $preferredRange[] = $sessionTime;
+            }
+        }
+        return $this->findOptimalTimeFromPreferredRange($preferredRange);
+    }
+    
+    function findOptimalTimeFromPreferredRange(array $preferredRange) {
+        $optimalStartTime = null;
+        $optimalEndTime = null;
+    
+        foreach ($preferredRange as $sessionTime) {
+            $loginTime = $sessionTime[0];
+            $logoutTime = $sessionTime[1];
+    
+            if ($optimalStartTime === null || $loginTime < $optimalStartTime && $loginTime!=null) {
+                $optimalStartTime = $loginTime;
+            }
+    
+            if ($optimalEndTime === null || $logoutTime > $optimalEndTime && $logoutTime!=null ) {
+                $optimalEndTime = $logoutTime;
+            }
+        }
+        
+    
+        $optimalTimeInSeconds = ($optimalStartTime->getTimestamp() + $optimalEndTime->getTimestamp()) / 2;
+        $optimalTime = new \DateTime();
+        $optimalTime->setTimestamp($optimalTimeInSeconds);
+        return $optimalTimeInSeconds;
+    }

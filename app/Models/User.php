@@ -53,4 +53,7 @@ class User extends Authenticatable
     public function Frequent_time_details(){
         return $this->hasMany(time_frequnecy::class);
     }
+    public function Optimal_Time(){
+        return $this->hasMany(optimalTime::class);
+    }
 }
