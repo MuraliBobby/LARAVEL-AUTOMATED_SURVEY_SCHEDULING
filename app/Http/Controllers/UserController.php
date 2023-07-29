@@ -8,6 +8,8 @@ use App\Models\preference;
 use Illuminate\Support\Facades\Auth;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
+use App\Models\time_frequnecy;
+use Illuminate\Support\Carbon;
 
 class UserController extends Controller
 {
@@ -34,33 +36,13 @@ class UserController extends Controller
         ]);
 
         
-        // if ($data['preferences']) {
-        //     foreach ($data['preferences'] as $category) {
-        //         preference::create([
-        //             'user_id' => $user->id,
-        //             'preferences' => $category 
-        //         ]);
-        //     }
-        // }
-
+       
         $preferencesString = implode(',', $data['preferences']);
         preference::create([
             'user_id' => $user->id,
             'preferences' => $preferencesString,
         ]);
-        
-        // if ($data['preferences']) {
-        //     // Save all selected preferences for the user
-        //     $preferencesToSave = [];
-        //     foreach ($data['preferences'] as $preference) {
-        //         $preferencesToSave[] = [
-        //             'user_id' => $user->id,
-        //             'preferences' => $preference,
-        //         ];
-        //     }
-        //     preference::insert($preferencesToSave);
-        // }
-        
+    
         // Auth::login($user);
         return redirect()->route('dashboard');
     

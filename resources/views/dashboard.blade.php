@@ -14,4 +14,21 @@
             </div>
         </div>
     </div>
+
+    <div>
+    <h1>User Availability Details</h1>
+    <table>
+        <tr>
+            <th>From Time</th>
+            <th>To Time</th>
+        </tr>
+        
+        <tr>
+            <td>{{ $availability->first()->from_time }}</td>
+            <td>{{ $availability->first()->to_time }}</td>
+        </tr>
+
+    </table>
+    </div>
+
 </x-app-layout>

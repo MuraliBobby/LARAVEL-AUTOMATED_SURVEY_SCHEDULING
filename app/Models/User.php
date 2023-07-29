@@ -49,4 +49,8 @@ class User extends Authenticatable
     public function Preference(){
         return $this->hasMany(preference::class);
     }
+
+    public function Frequent_time_details(){
+        return $this->hasMany(time_frequnecy::class);
+    }
 }

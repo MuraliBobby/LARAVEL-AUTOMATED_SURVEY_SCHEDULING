@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use GuzzleHttp\Client;
+use App\Models\User;
+use App\Models\availability;
+use App\Models\preference;
+
+class generate_survey_form extends Controller
+{
+    public function showDashboard()
+    {
+        
+        // Assuming preferences are associated with a user, retrieve the user's preferences
+        $userPreferences = preference::where('user_id', auth()->user()->id)->get();
+
+        // Generate the survey form using GPT-3 API
+        $generatedSurvey = $this->generate($userPreferences);
+
+        // Pass the generated survey to the dashboard view
+        return view('dashboard', compact('userPreferences', 'generatedSurvey'));
+    }
+
+    public function generate($userPreferences)
+    {
+        // Prepare the user's preferences as input for GPT-3
+        $formPrompt = "Please fill out this survey form:\n\n";
+        foreach ($userPreferences as $preference) {
+            $formPrompt .= $preference->question . "\n";
+        }
+
+        // Make the API call to GPT-3 using Guzzle HTTP client
+        $gpt3ApiKey = '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';
+        $client = new Client();
+        $response = $client->post('https://api.openai.com/v1/engines/text-ada-001/completions', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $gpt3ApiKey,
+            ],
+            'json' => [
+                'prompt' => $formPrompt,
+                'max_tokens' => 100, // Adjust the token limit based on your requirements
+            ],
+        ]);
+
+        // Decode the JSON response and extract the generated survey form
+        $data = json_decode($response->getBody(), true);
+        $generatedSurvey = $data['choices'][0]['text'];
+
+        return $generatedSurvey;
+    }
+
+}
