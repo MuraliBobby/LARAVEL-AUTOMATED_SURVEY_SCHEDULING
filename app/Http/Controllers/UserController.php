@@ -48,6 +48,10 @@ class UserController extends Controller
     
     }
 
+    public function showSurvey(){
+        return view('survey.blade');
+    }
+
     
 
 }

@@ -18,4 +18,9 @@ class availability extends Model
     public function user(){
         return $this->belongTo(User::class);
     }
+
+    public function surveyLinks()
+    {
+        return $this->hasMany(survey::class);
+    }
 }

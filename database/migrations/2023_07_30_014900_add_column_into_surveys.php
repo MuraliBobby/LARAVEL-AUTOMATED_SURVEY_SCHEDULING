@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         //
-        Schema::create('preferences', function (Blueprint $table) {
-            $table->id('user_id');
-            $table->string('preferences');
+        Schema::table('surveys', function (Blueprint $table) {
             $table->timestamp('updated_at')->nullable();
             $table->timestamp('created_at')->nullable();
         });
@@ -26,6 +24,11 @@ return new class extends Migration
     public function down(): void
     {
         //
-        Schema::dropIfExists('preferences');
+        Schema::table('surveys', function (Blueprint $table) {
+            
+            $table->dropColumn('updated_at');
+            $table->dropColumn('created_at');
+        }); 
+        
     }
 };
