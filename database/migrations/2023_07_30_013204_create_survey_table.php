@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('preferences', function (Blueprint $table) {
-            //
-            $table->unsignedBigInteger('user_id');
-            $table->string('preferences');
+        Schema::create('survey', function (Blueprint $table) {
+            $table->id('user_id');
+            $table->string('survey_link');
+            $table->string('email');
         });
     }
 
@@ -23,10 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('preferences', function (Blueprint $table) {
-            //
-            $table->dropColumn('user_id');
-            $table->dropColumn('preferences');
-        });
+        Schema::dropIfExists('survey');
     }
 };

@@ -48,5 +48,13 @@ class UserController extends Controller
     
     }
 
+<<<<<<< HEAD
+=======
+    public function showSurvey(){
+        return view('survey.blade');
+    }
+
+    
+>>>>>>> 65b2c34a98980085731b3729601ff04ea78bf1f5
 
 }

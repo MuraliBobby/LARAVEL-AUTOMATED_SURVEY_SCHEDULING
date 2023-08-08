@@ -14,9 +14,13 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+<<<<<<< HEAD
         $schedule->command('survey:send')->everyTwoMinutes();
         
         $schedule->command(IncrementTime::class)->everyMinute();
+=======
+        $schedule->command(SendSurveyCommand::class)->everyMinute();
+>>>>>>> 65b2c34a98980085731b3729601ff04ea78bf1f5
     }
 
     /**
